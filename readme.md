@@ -7,3 +7,15 @@ mysql
 
 redis
 
+
+### Commands:
+make build
+
+make up
+
+make down
+
+make app
+
+make log-app
+
