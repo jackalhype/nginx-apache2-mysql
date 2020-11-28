@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  web:
+    build: ./docker/nginx
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - .:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+    extra_hosts:
+      - "site.local:127.0.0.1"
+    restart: always
+    depends_on:
+      - app
+
+
+  app:
+    build: ./docker/php-apache
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      XDEBUG_CONFIG: remote_host=${XDEBUG_REMOTE_HOST}
+    volumes:
+      - .:/var/www/html
+      - ./docker/php-apache/php-conf/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./docker/php-apache/php-conf/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+#     ports:
+#      - 8180:8180
+#      - 8280:8280
+    depends_on:
+      - redis
+      - mysql
+
+  redis:
+    build: ./docker/redis
+    restart: always
+
+  mysql:
+    build: ./docker/mysql
+    restart: always
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+      # - ./docker/mysql/dump.sql:/dump.sql
+    env_file:
+      - ./config/.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=secret
+    ports:
+      - 33306:3306
